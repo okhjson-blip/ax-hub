@@ -1,0 +1,841 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AX Hub - Consulting OS</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+    <style>
+        :root {
+            --bg: #f5f6f8;
+            --panel: #ffffff;
+            --panel-soft: #f8f9fb;
+            --ink: #1c2128;
+            --ink-soft: #4b525e;
+            --muted: #868d99;
+            --line: #e6e8ec;
+            --line-strong: #d6dae1;
+            --blue: #3f6392;
+            --blue-soft: #eef2f8;
+            --green: #2f8265;
+            --green-soft: #eef6f2;
+            --yellow: #9a6b1e;
+            --yellow-soft: #fbf4e8;
+            --red: #b5473f;
+            --red-soft: #faf0ef;
+            --shadow: 0 1px 2px rgba(20, 25, 35, 0.04), 0 4px 16px rgba(20, 25, 35, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            color: var(--ink);
+            background: var(--bg);
+            font-family: "Pretendard", "Pretendard Variable", "Segoe UI", "Malgun Gothic", Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            letter-spacing: -0.01em;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        button, input, select {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .app-shell {
+            display: grid;
+            grid-template-columns: 248px minmax(0, 1fr);
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            padding: 24px 16px;
+            background: #1e232b;
+            border-right: 1px solid #2a2f38;
+            color: #f4f5f7;
+            overflow-y: auto;
+        }
+
+        .brand {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding: 0 8px 24px;
+        }
+
+        .brand-mark {
+            display: grid;
+            width: 42px;
+            height: 42px;
+            place-items: center;
+            border-radius: 10px;
+            background: var(--blue);
+            font-weight: 700;
+            color: white;
+        }
+
+        .brand strong {
+            display: block;
+            color: #f4f5f7;
+            font-weight: 700;
+        }
+
+        .brand span {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .nav-list {
+            display: grid;
+            gap: 6px;
+        }
+
+        .nav-item {
+            width: 100%;
+            padding: 10px 12px;
+            color: #b7bcc6;
+            font-size: 13.5px;
+            font-weight: 500;
+            text-align: left;
+            background: transparent;
+            border: 0;
+            border-radius: 8px;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+
+        .nav-item:hover {
+            color: #fff;
+            background: #2b313b;
+        }
+
+        .nav-item.active {
+            color: #fff;
+            background: #2b313b;
+            font-weight: 600;
+            box-shadow: inset 3px 0 0 var(--blue);
+        }
+
+        .main {
+            min-width: 0;
+            padding: 28px;
+            overflow-y: auto;
+            max-height: 100vh;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            gap: 16px;
+        }
+
+        .eyebrow {
+            margin: 0 0 6px;
+            color: var(--blue);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0;
+            color: var(--ink);
+            font-size: 25px;
+            line-height: 1.25;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        h2 {
+            margin: 0 0 16px;
+            color: var(--ink);
+            font-size: 16px;
+            line-height: 1.4;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .primary-button, .text-button {
+            padding: 9px 15px;
+            border: 1px solid var(--line-strong);
+            border-radius: 8px;
+            background: #fff;
+            transition: background 0.15s ease;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .primary-button {
+            color: #fff;
+            background: var(--blue);
+            border-color: var(--blue);
+        }
+
+        .primary-button:hover {
+            background: #35547e;
+            border-color: #35547e;
+        }
+
+        .text-button {
+            color: var(--blue);
+            background: #fff;
+        }
+
+        .text-button:hover {
+            background: var(--blue-soft);
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .metric {
+            padding: 18px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .metric span, .metric small {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .metric > span {
+            font-weight: 600;
+            color: var(--ink-soft);
+        }
+
+        .metric strong {
+            display: block;
+            margin: 8px 0 4px;
+            color: var(--ink);
+            font-size: 27px;
+            line-height: 1.1;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .panel {
+            padding: 20px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+        }
+
+        .panel-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            gap: 10px;
+        }
+
+        .prompt-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .prompt-item {
+            padding: 14px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--panel-soft);
+        }
+
+        .prompt-title {
+            margin: 0 0 6px;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--ink);
+        }
+
+        .prompt-meta {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 6px 12px;
+            background: var(--blue-soft);
+            color: #3a5578;
+            border-radius: 99px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid #dde5f0;
+        }
+
+        .prompt-content {
+            margin: 0;
+            font-size: 13px;
+            color: var(--ink-soft);
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .prompt-author {
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--ink);
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--ink);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(63, 99, 146, 0.1);
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 11px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--line);
+        }
+
+        th {
+            color: var(--muted);
+            font-size: 11.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        td {
+            color: var(--ink-soft);
+            font-size: 13px;
+        }
+
+        tbody tr:hover td {
+            background: var(--panel-soft);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 8px;
+            color: #3a5578;
+            background: var(--blue-soft);
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .progress {
+            height: 9px;
+            overflow: hidden;
+            background: #e8eef8;
+            border-radius: 99px;
+        }
+
+        .progress span {
+            display: block;
+            height: 100%;
+            background: var(--green);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: var(--muted);
+        }
+
+        .error {
+            padding: 14px;
+            background: var(--red-soft);
+            border: 1px solid #e8bbb8;
+            border-radius: 8px;
+            color: var(--red);
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-mark">AX</div>
+                <div>
+                    <strong>AX Hub</strong>
+                    <span>Consulting OS</span>
+                </div>
+            </div>
+            <nav class="nav-list" aria-label="AX Hub navigation">
+                <button class="nav-item active" data-view="dashboard">홈</button>
+                <button class="nav-item" data-view="register">등록</button>
+                <button class="nav-item" data-view="prompts">프롬프트 공유</button>
+                <button class="nav-item" data-view="studio">프롬프트 스튜디오</button>
+                <button class="nav-item" data-view="projects">프로젝트</button>
+            </nav>
+        </aside>
+
+        <main class="main">
+            <header class="topbar">
+                <div>
+                    <p class="eyebrow">통합 현황</p>
+                    <h1 id="view-title">메인 홈 / 통합 대시보드</h1>
+                </div>
+                <div class="actions">
+                    <button class="primary-button">프롬프트 업로드</button>
+                </div>
+            </header>
+
+            <!-- 대시보드 -->
+            <section id="dashboard" class="view active">
+                <div class="kpi-grid" id="kpi-container">
+                    <div class="loading">로딩 중...</div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-head">
+                        <h2>인기 프롬프트 Top 5</h2>
+                    </div>
+                    <div class="prompt-list" id="popular-prompts">
+                        <div class="loading">로딩 중...</div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-head">
+                        <h2>최근 프로젝트</h2>
+                    </div>
+                    <table id="projects-table">
+                        <thead>
+                            <tr>
+                                <th>프로젝트명</th>
+                                <th>고객사</th>
+                                <th>진척도</th>
+                                <th>상태</th>
+                            </tr>
+                        </thead>
+                        <tbody id="projects-tbody">
+                            <tr><td colspan="4" class="loading">로딩 중...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 프롬프트 등록 -->
+            <section id="register" class="view">
+                <div class="two-column">
+                    <div class="panel">
+                        <h2>프롬프트 등록</h2>
+                        <form id="prompt-form">
+                            <div class="form-group">
+                                <label>제목 *</label>
+                                <input type="text" id="prompt-title" placeholder="프롬프트 제목" required>
+                            </div>
+                            <div class="form-group">
+                                <label>카테고리 *</label>
+                                <select id="prompt-category" required>
+                                    <option value="">선택하세요</option>
+                                    <option value="기획">기획</option>
+                                    <option value="개발">개발</option>
+                                    <option value="제조">제조</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>내용 *</label>
+                                <textarea id="prompt-content" placeholder="마스킹 변수는 [변수명] 형식으로 작성" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>등록자 *</label>
+                                <input type="text" id="prompt-author" placeholder="이름/부서" required>
+                            </div>
+                            <button type="submit" class="primary-button" style="width: 100%;">✅ 등록하기</button>
+                        </form>
+                    </div>
+                    <div class="panel">
+                        <h2>미리보기</h2>
+                        <div style="padding: 14px; background: var(--panel-soft); border-radius: 8px; border: 1px solid var(--line); font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; white-space: pre-wrap; min-height: 200px;" id="preview-text">
+입력된 내용이 여기에 표시됩니다.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 프롬프트 공유 -->
+            <section id="prompts" class="view">
+                <div class="panel">
+                    <div class="panel-head">
+                        <h2>프롬프트 마켓플레이스</h2>
+                        <select id="category-filter" style="width: auto; min-width: 160px;">
+                            <option value="">모든 카테고리</option>
+                            <option value="기획">기획</option>
+                            <option value="개발">개발</option>
+                            <option value="제조">제조</option>
+                        </select>
+                    </div>
+                    <div class="prompt-list" id="all-prompts">
+                        <div class="loading">로딩 중...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 프롬프트 스튜디오 -->
+            <section id="studio" class="view">
+                <div class="panel">
+                    <h2>프롬프트 스튜디오</h2>
+                    <div class="two-column">
+                        <div>
+                            <h3 style="margin: 0 0 12px; font-size: 14px;">프롬프트 선택</h3>
+                            <div class="form-group">
+                                <select id="studio-prompt-select" style="margin-bottom: 20px;">
+                                    <option value="">프롬프트 선택...</option>
+                                </select>
+                            </div>
+                            <div id="studio-variables"></div>
+                        </div>
+                        <div>
+                            <h3 style="margin: 0 0 12px; font-size: 14px;">미리보기</h3>
+                            <div style="padding: 14px; background: var(--panel-soft); border: 1px solid var(--line); border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6; white-space: pre-wrap; min-height: 200px; margin-bottom: 12px;" id="studio-preview">
+프롬프트를 선택하세요.
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="primary-button" style="flex: 1;" onclick="copyToClipboard()">📋 복사</button>
+                                <button class="text-button" style="flex: 1;" onclick="executePrompt()">🚀 실행</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 프로젝트 -->
+            <section id="projects" class="view">
+                <div class="panel">
+                    <h2>프로젝트 목록</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>프로젝트명</th>
+                                <th>고객사</th>
+                                <th>부서</th>
+                                <th>진척도</th>
+                                <th>상태</th>
+                            </tr>
+                        </thead>
+                        <tbody id="all-projects-tbody">
+                            <tr><td colspan="5" class="loading">로딩 중...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:8000/api";
+        let currentPrompt = null;
+        let currentVariables = {};
+
+        // ==================== 네비게이션 ====================
+        document.querySelectorAll('.nav-item').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                btn.classList.add('active');
+                const viewId = btn.dataset.view;
+                document.getElementById(viewId)?.classList.add('active');
+
+                const titles = {
+                    dashboard: '메인 홈 / 통합 대시보드',
+                    register: '프롬프트 등록',
+                    prompts: '프롬프트 마켓플레이스',
+                    studio: '프롬프트 스튜디오',
+                    projects: '프로젝트 관리'
+                };
+                document.getElementById('view-title').textContent = titles[viewId] || '메인 홈';
+
+                // 페이지별 데이터 로드
+                if (viewId === 'dashboard') loadDashboard();
+                else if (viewId === 'prompts') loadAllPrompts();
+                else if (viewId === 'studio') loadStudioPrompts();
+                else if (viewId === 'projects') loadAllProjects();
+            });
+        });
+
+        // ==================== API 함수 ====================
+        async function fetchAPI(endpoint, method = 'GET', data = null) {
+            const options = {
+                method,
+                headers: { 'Content-Type': 'application/json' }
+            };
+            if (data) options.body = JSON.stringify(data);
+
+            try {
+                const response = await fetch(`${API_URL}${endpoint}`, options);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                return null;
+            }
+        }
+
+        // ==================== 대시보드 ====================
+        async function loadDashboard() {
+            const stats = await fetchAPI('/dashboard/stats');
+            const popular = await fetchAPI('/prompts/top/popular?limit=5');
+            const projects = await fetchAPI('/projects?limit=3');
+
+            if (stats) {
+                document.getElementById('kpi-container').innerHTML = `
+                    <article class="metric"><span>진행 프로젝트</span><strong>${stats.total_projects}</strong><small>월간 신규</small></article>
+                    <article class="metric"><span>활용 프롬프트</span><strong>${stats.total_prompts}</strong><small>주간 추가</small></article>
+                    <article class="metric"><span>누적 절감 시간</span><strong>${Math.round(stats.total_time_saved)}h</strong><small>FTE 기준</small></article>
+                    <article class="metric"><span>참여 부서</span><strong>${stats.participating_departments}</strong><small>전사 구성</small></article>
+                `;
+            }
+
+            if (popular) {
+                document.getElementById('popular-prompts').innerHTML = popular.map(p => `
+                    <div class="prompt-item">
+                        <div class="prompt-title">${p.title}</div>
+                        <div class="prompt-meta">
+                            <span class="tag">${p.category}</span>
+                        </div>
+                        <p class="prompt-content">${p.content.substring(0, 100)}...</p>
+                        <div class="prompt-author">등록: ${p.author} · ❤️ ${p.likes}</div>
+                    </div>
+                `).join('');
+            }
+
+            if (projects) {
+                document.getElementById('projects-tbody').innerHTML = projects.map(p => `
+                    <tr>
+                        <td>${p.name}</td>
+                        <td>${p.client}</td>
+                        <td>
+                            <div class="progress"><span style="width:${p.progress}%"></span></div>
+                            ${p.progress}%
+                        </td>
+                        <td><span class="badge">${p.status}</span></td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // ==================== 프롬프트 ====================
+        async function loadAllPrompts() {
+            const category = document.getElementById('category-filter')?.value || '';
+            const url = category ? `/prompts?category=${category}` : '/prompts';
+            const prompts = await fetchAPI(url);
+
+            if (prompts) {
+                document.getElementById('all-prompts').innerHTML = prompts.map(p => `
+                    <div class="prompt-item">
+                        <div style="display: flex; justify-content: space-between; gap: 16px;">
+                            <div style="flex: 1; min-width: 0;">
+                                <div class="prompt-title">${p.title}</div>
+                                <div class="prompt-meta">
+                                    <span class="tag">${p.category}</span>
+                                </div>
+                                <p class="prompt-content">${p.content}</p>
+                                <div class="prompt-author">등록: ${p.author}</div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 8px; white-space: nowrap;">
+                                <button class="text-button" style="padding: 6px 11px; font-size: 12px;" onclick="copyPrompt('${p.content}')">📋 복사</button>
+                                <button style="padding: 6px 11px; border: 1px solid var(--line); border-radius: 8px; background: white; font-size: 12px; color: var(--muted);" onclick="likePrompt(${p.id})">❤️ ${p.likes}</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // ==================== 프롬프트 등록 ====================
+        document.getElementById('prompt-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                title: document.getElementById('prompt-title').value,
+                category: document.getElementById('prompt-category').value,
+                content: document.getElementById('prompt-content').value,
+                author: document.getElementById('prompt-author').value,
+                variables: [],
+                tags: []
+            };
+
+            const result = await fetchAPI('/prompts', 'POST', data);
+            if (result) {
+                alert('프롬프트가 등록되었습니다!');
+                document.getElementById('prompt-form').reset();
+            }
+        });
+
+        // ==================== 프롬프트 스튜디오 ====================
+        async function loadStudioPrompts() {
+            const prompts = await fetchAPI('/prompts');
+            const select = document.getElementById('studio-prompt-select');
+            if (prompts) {
+                select.innerHTML = '<option value="">프롬프트 선택...</option>' +
+                    prompts.map(p => `<option value="${p.id}">${p.title}</option>`).join('');
+
+                select.addEventListener('change', async (e) => {
+                    if (e.target.value) {
+                        const prompt = await fetchAPI(`/prompts/${e.target.value}`);
+                        if (prompt) {
+                            currentPrompt = prompt;
+                            currentVariables = {};
+
+                            // 변수 입력 폼 생성
+                            const varsDiv = document.getElementById('studio-variables');
+                            varsDiv.innerHTML = prompt.variables.map(v => `
+                                <div class="form-group">
+                                    <label>${v} *</label>
+                                    <input type="text" placeholder="${v}" onchange="updatePreview(this.value, '${v}')">
+                                </div>
+                            `).join('');
+
+                            updatePreview();
+                        }
+                    }
+                });
+            }
+        }
+
+        function updatePreview(value = '', varName = '') {
+            if (!currentPrompt) return;
+
+            if (varName) {
+                currentVariables[varName] = value;
+            }
+
+            let text = currentPrompt.content;
+            Object.entries(currentVariables).forEach(([k, v]) => {
+                text = text.replace(`[${k}]`, v);
+            });
+
+            document.getElementById('studio-preview').textContent = text;
+        }
+
+        function copyToClipboard() {
+            let text = currentPrompt.content;
+            Object.entries(currentVariables).forEach(([k, v]) => {
+                text = text.replace(`[${k}]`, v);
+            });
+            navigator.clipboard.writeText(text);
+            alert('복사되었습니다!');
+        }
+
+        function copyPrompt(content) {
+            navigator.clipboard.writeText(content);
+            alert('복사되었습니다!');
+        }
+
+        async function likePrompt(promptId) {
+            await fetchAPI(`/prompts/${promptId}/like`, 'POST');
+            loadAllPrompts();
+        }
+
+        async function executePrompt() {
+            if (!currentPrompt) return;
+
+            const execution = await fetchAPI('/prompt-execution', 'POST', {
+                prompt_id: currentPrompt.id,
+                variables: currentVariables,
+                user: 'user@ax.samsung.com'
+            });
+
+            if (execution) {
+                alert('프롬프트가 실행되었습니다!');
+            }
+        }
+
+        // ==================== 프로젝트 ====================
+        async function loadAllProjects() {
+            const projects = await fetchAPI('/projects');
+            if (projects) {
+                document.getElementById('all-projects-tbody').innerHTML = projects.map(p => `
+                    <tr>
+                        <td>${p.name}</td>
+                        <td>${p.client}</td>
+                        <td>${p.department}</td>
+                        <td>
+                            <div class="progress"><span style="width:${p.progress}%"></span></div>
+                            ${p.progress}%
+                        </td>
+                        <td><span class="badge">${p.status}</span></td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // ==================== 초기 로드 ====================
+        loadDashboard();
+
+        // 카테고리 필터 변경
+        document.getElementById('category-filter')?.addEventListener('change', loadAllPrompts);
+    </script>
+</body>
+</html>

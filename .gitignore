@@ -1,0 +1,11 @@
+uploads/
+data/
+node_modules/
+ui mokup/
+.env
+.env.local
+.vercel
+*.log
+.DS_Store
+.env*
+!.env.example

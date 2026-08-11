@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AX Hub - Consulting OS</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-mark">AX</div>
+                <div>
+                    <strong>AX Hub</strong>
+                    <span>Consulting OS</span>
+                </div>
+            </div>
+            <nav class="nav-list" aria-label="AX Hub navigation">
+                <button class="nav-item active" data-view="home" type="button">홈</button>
+                <button class="nav-item" data-view="tasks" type="button">과제 Library</button>
+                <button class="nav-item" data-view="prompts" type="button">프롬프트 Library</button>
+                <button class="nav-item" data-view="vibe" type="button">Vibe Coding Library</button>
+                <button class="nav-item" data-view="cases" type="button">Best Practice Library</button>
+            </nav>
+            <div class="sidebar-foot">
+                <button class="text-button sidebar-auth" id="admin-auth-btn" type="button">관리자 로그인</button>
+                <p class="helper" id="admin-status">공유 모드</p>
+            </div>
+        </aside>
+
+        <main class="main">
+            <header class="topbar">
+                <div>
+                    <p class="eyebrow" id="view-eyebrow">통합 현황</p>
+                    <h1 id="view-title">메인 홈 / 통합 대시보드</h1>
+                </div>
+                <div class="actions" id="top-actions"></div>
+            </header>
+
+            <section id="home" class="view active">
+                <div class="kpi-grid" id="kpi-grid">
+                    <p class="status-msg">대시보드 데이터를 불러오는 중…</p>
+                </div>
+
+                <div class="dashboard-grid">
+                    <section class="panel">
+                        <div class="panel-head">
+                            <h2>과제별 요약</h2>
+                            <div class="panel-actions">
+                                <label class="sort-control">
+                                    <span>정렬</span>
+                                    <select id="task-sort" aria-label="과제 정렬">
+                                        <option value="company" selected>협력사 순</option>
+                                        <option value="difficulty">난이도 순</option>
+                                        <option value="name">과제명 순</option>
+                                    </select>
+                                </label>
+                                <button class="primary-button admin-only" id="import-tasks-btn" type="button" disabled>과제 Library로 등록</button>
+                            </div>
+                        </div>
+                        <div class="project-list" id="task-list">
+                            <p class="status-msg">불러오는 중…</p>
+                        </div>
+                    </section>
+
+                    <section class="panel">
+                        <div class="panel-head">
+                            <h2>병목 및 리스크</h2>
+                            <span class="helper" id="risk-count"></span>
+                        </div>
+                        <ul class="alert-list" id="alert-list">
+                            <li><span>불러오는 중…</span></li>
+                        </ul>
+                    </section>
+                </div>
+            </section>
+
+            <section id="tasks" class="view">
+                <div id="task-list-panel">
+                    <section class="panel">
+                        <div class="panel-head">
+                            <h2>과제 목록</h2>
+                            <div class="panel-actions">
+                                <span class="helper" id="task-asset-count"></span>
+                                <button class="primary-button admin-only" id="task-create-btn" type="button" disabled>과제 등록</button>
+                            </div>
+                        </div>
+                        <div class="statik-filters" id="statik-filters" aria-label="STATIK L1~L4 필터">
+                            <div class="filter-row" data-level="l1"><span class="filter-label">L1</span><div class="filter-control" id="filter-l1"></div></div>
+                            <div class="filter-row" data-level="l2"><span class="filter-label">L2</span><div class="filter-control" id="filter-l2"></div></div>
+                            <div class="filter-row" data-level="l3"><span class="filter-label">L3</span><div class="filter-control" id="filter-l3"></div></div>
+                            <div class="filter-row" data-level="l4"><span class="filter-label">L4</span><div class="filter-control" id="filter-l4"></div></div>
+                        </div>
+                        <div id="task-asset-list" class="asset-list">
+                            <p class="status-msg">불러오는 중…</p>
+                        </div>
+                    </section>
+                </div>
+
+                <div id="task-detail-panel" class="hidden">
+                    <section class="panel">
+                        <div class="panel-head">
+                            <div>
+                                <button class="text-button" id="task-back-btn" type="button">← 목록으로</button>
+                                <h2 id="task-detail-title" style="margin-top:8px">과제 상세</h2>
+                            </div>
+                            <div class="panel-actions">
+                                <button class="primary-button admin-only" id="task-save-btn" type="button" disabled>저장</button>
+                            </div>
+                        </div>
+
+                        <input type="hidden" id="task-detail-id">
+
+                        <h3 class="section-label">기본 정보</h3>
+                        <div class="form-row ratio-2-1-1">
+                            <div class="form-group">
+                                <label for="td-title">과제명 *</label>
+                                <input id="td-title" type="text">
+                            </div>
+                            <div class="form-group">
+                                <label for="td-difficulty">난이도</label>
+                                <select id="td-difficulty">
+                                    <option value="상">상</option>
+                                    <option value="중" selected>중</option>
+                                    <option value="하">하</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="td-assignees">과제 담당자 수</label>
+                                <input id="td-assignees" type="number" min="0" step="1" value="1">
+                            </div>
+                        </div>
+                        <div class="form-row ratio-1-1-1">
+                            <div class="form-group">
+                                <label for="td-start">시작일</label>
+                                <input id="td-start" type="date">
+                            </div>
+                            <div class="form-group">
+                                <label for="td-end">종료일</label>
+                                <input id="td-end" type="date">
+                            </div>
+                            <div class="form-group">
+                                <label for="td-months">수행 기간 (개월)</label>
+                                <input id="td-months" type="text" readonly placeholder="자동 계산">
+                            </div>
+                        </div>
+                        <div class="two-column">
+                            <div class="form-group">
+                                <label for="td-company">협력사 / 프로젝트</label>
+                                <input id="td-company" type="text">
+                            </div>
+                            <div class="form-group">
+                                <label for="td-goal">과제 목표</label>
+                                <input id="td-goal" type="text">
+                            </div>
+                        </div>
+
+                        <h3 class="section-label">STATIK 업무 구조</h3>
+                        <div class="statik-grid statik-grid-4">
+                            <div class="form-group"><label for="td-l1">L1 분류</label><input id="td-l1" type="text" placeholder="예: 연구개발"></div>
+                            <div class="form-group"><label for="td-l2">L2 대분류</label><input id="td-l2" type="text" placeholder="예: 서비스 앱 개발"></div>
+                            <div class="form-group"><label for="td-l3">L3 중분류</label><input id="td-l3" type="text" placeholder="예: 프론트엔드 개발"></div>
+                            <div class="form-group"><label for="td-l4">L4 모듈</label><input id="td-l4" type="text" placeholder="예: UX 시나리오 기획"></div>
+                        </div>
+                        <div id="statik-breadcrumb" class="statik-breadcrumb helper"></div>
+
+                        <h3 class="section-label">AX 성과지표</h3>
+                        <div class="kpi-edit-grid kpi-row-4">
+                            <div class="form-group"><label>AS-IS 수행(분)</label><input id="kpi-asis" type="number" min="0"></div>
+                            <div class="form-group"><label>To-Be 수행(분)</label><input id="kpi-tobe" type="number" min="0"></div>
+                            <div class="form-group"><label>건당 절감(분)</label><input id="kpi-saved" type="number" min="0"></div>
+                            <div class="form-group"><label>시간 절감률(%)</label><input id="kpi-rate" type="number" min="0" max="100" step="0.1"></div>
+                        </div>
+                        <div class="kpi-edit-grid kpi-row-4">
+                            <div class="form-group"><label>수행 빈도</label><input id="kpi-freq" type="text" placeholder="예: 주 1회 (연간 52회)"></div>
+                            <div class="form-group"><label>연간 절감 시간</label><input id="kpi-annual" type="number" min="0" step="0.1"></div>
+                            <div class="form-group"><label>절감 FTE</label><input id="kpi-fte" type="number" min="0" step="0.001"></div>
+                            <div class="form-group"><label>자동화율(%)</label><input id="kpi-auto" type="number" min="0" max="100" step="0.1"></div>
+                        </div>
+
+                        <h3 class="section-label">As-Is vs To-Be 프로세스</h3>
+                        <div class="flow-compare">
+                            <div>
+                                <div class="panel-head">
+                                    <h2>As-Is</h2>
+                                    <button class="text-button admin-only" id="add-asis-step" type="button" disabled>단계 추가</button>
+                                </div>
+                                <div id="asis-steps" class="step-editor" data-mode="asis"></div>
+                                <div id="asis-flow" class="process-flow vertical" aria-label="As-Is flow"></div>
+                            </div>
+                            <div>
+                                <div class="panel-head">
+                                    <h2>To-Be</h2>
+                                    <button class="text-button admin-only" id="add-tobe-step" type="button" disabled>단계 추가</button>
+                                </div>
+                                <div id="tobe-steps" class="step-editor" data-mode="tobe"></div>
+                                <div id="tobe-flow" class="process-flow vertical" aria-label="To-Be flow"></div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </section>
+
+            <section id="prompts" class="view">
+                <div id="prompt-list-panel">
+                    <section class="panel">
+                        <div class="panel-head">
+                            <h2>프롬프트 목록</h2>
+                            <div class="panel-actions">
+                                <span class="helper" id="prompt-count"></span>
+                                <button class="primary-button admin-only" id="prompt-create-btn" type="button" disabled>프롬프트 등록</button>
+                            </div>
+                        </div>
+                        <div class="statik-filters" id="prompt-statik-filters" aria-label="프롬프트 STATIK L1~L4 필터">
+                            <div class="filter-row" data-level="l1"><span class="filter-label">L1</span><div class="filter-control" id="prompt-filter-l1"></div></div>
+                            <div class="filter-row" data-level="l2"><span class="filter-label">L2</span><div class="filter-control" id="prompt-filter-l2"></div></div>
+                            <div class="filter-row" data-level="l3"><span class="filter-label">L3</span><div class="filter-control" id="prompt-filter-l3"></div></div>
+                            <div class="filter-row" data-level="l4"><span class="filter-label">L4</span><div class="filter-control" id="prompt-filter-l4"></div></div>
+                        </div>
+                        <div id="prompt-list" class="asset-list">
+                            <p class="status-msg">불러오는 중…</p>
+                        </div>
+                    </section>
+                </div>
+
+                <div id="prompt-detail-panel" class="hidden">
+                    <section class="panel">
+                        <div class="panel-head">
+                            <div>
+                                <button class="text-button" id="prompt-back-btn" type="button">← 목록으로</button>
+                                <h2 id="prompt-detail-title" style="margin-top:8px">프롬프트 상세</h2>
+                            </div>
+                            <div class="panel-actions">
+                                <button class="primary-button admin-only" id="prompt-save-btn" type="button" disabled>저장</button>
+                            </div>
+                        </div>
+
+                        <input type="hidden" id="prompt-detail-id">
+
+                        <h3 class="section-label">기본 정보</h3>
+                        <div class="two-column">
+                            <div class="form-group">
+                                <label for="pd-title">프롬프트 제목 *</label>
+                                <input id="pd-title" type="text">
+                            </div>
+                            <div class="form-group">
+                                <label for="pd-tags">태그 (쉼표)</label>
+                                <input id="pd-tags" type="text" placeholder="예: UX, 시나리오">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="pd-description">설명</label>
+                            <input id="pd-description" type="text" placeholder="프롬프트 용도·맥락을 짧게 입력">
+                        </div>
+                        <div class="form-group">
+                            <label for="pd-variables">변수 (쉼표, 비우면 [변수] 자동 추출)</label>
+                            <input id="pd-variables" type="text" placeholder="예: 고객명, 제품명">
+                        </div>
+
+                        <h3 class="section-label">STATIK 업무 구조</h3>
+                        <div class="statik-grid statik-grid-4">
+                            <div class="form-group"><label for="pd-l1">L1 분류</label><input id="pd-l1" type="text" placeholder="예: 연구개발"></div>
+                            <div class="form-group"><label for="pd-l2">L2 대분류</label><input id="pd-l2" type="text" placeholder="예: 서비스 앱 개발"></div>
+                            <div class="form-group"><label for="pd-l3">L3 중분류</label><input id="pd-l3" type="text" placeholder="예: 프론트엔드 개발"></div>
+                            <div class="form-group"><label for="pd-l4">L4 모듈</label><input id="pd-l4" type="text" placeholder="예: UX 시나리오 기획"></div>
+                        </div>
+                        <div id="prompt-statik-breadcrumb" class="statik-breadcrumb helper"></div>
+
+                        <h3 class="section-label">프롬프트 본문</h3>
+                        <div class="form-group">
+                            <label for="pd-template">직접 입력 *</label>
+                            <textarea id="pd-template" rows="12" placeholder="프롬프트를 입력하세요. 변수는 [변수명] 형식으로 작성합니다."></textarea>
+                        </div>
+                        <div class="two-column">
+                            <div class="form-group">
+                                <label for="pd-txt-file">TXT 파일 업로드</label>
+                                <input id="pd-txt-file" type="file" accept=".txt,text/plain">
+                                <p class="helper">선택 시 본문에 내용을 채웁니다. 저장 시 서버에도 반영됩니다.</p>
+                            </div>
+                            <div class="form-group">
+                                <label for="pd-source-filename">원본 파일명</label>
+                                <input id="pd-source-filename" type="text" readonly placeholder="업로드한 파일명">
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </section>
+
+            <section id="vibe" class="view">
+                <div id="vibe-list-panel">
+                    <section class="panel">
+                        <div class="panel-head">
+                            <h2>Vibe Coding 목록</h2>
+                            <div class="panel-actions">
+                                <span class="helper" id="vibe-count"></span>
+                                <button class="primary-button admin-only" id="vibe-create-btn" type="button" disabled>문서 등록</button>
+                            </div>
+                        </div>
+                        <div class="statik-filters" id="vibe-statik-filters" aria-label="Vibe STATIK L1~L4 필터">
+                            <div class="filter-row" data-level="l1"><span class="filter-label">L1</span><div class="filter-control" id="vibe-filter-l1"></div></div>
+                            <div class="filter-row" data-level="l2"><span class="filter-label">L2</span><div class="filter-control" id="vibe-filter-l2"></div></div>
+                            <div class="filter-row" data-level="l3"><span class="filter-label">L3</span><div class="filter-control" id="vibe-filter-l3"></div></div>
+                            <div class="filter-row" data-level="l4"><span class="filter-label">L4</span><div class="filter-control" id="vibe-filter-l4"></div></div>
+                        </div>
+                        <div id="vibe-list" class="asset-list">
+                            <p class="status-msg">불러오는 중…</p>
+                        </div>
+                    </section>
+                </div>
+
+                <div id="vibe-detail-panel" class="hidden">
+                    <section class="panel">
+                        <div class="panel-head">
+                            <div>
+                                <button class="text-button" id="vibe-back-btn" type="button">← 목록으로</button>
+                                <h2 id="vibe-detail-title" style="margin-top:8px">Vibe Coding 상세</h2>
+                            </div>
+                            <div class="panel-actions">
+                                <button class="primary-button admin-only" id="vibe-save-btn" type="button" disabled>저장</button>
+                            </div>
+                        </div>
+
+                        <input type="hidden" id="vibe-detail-id">
+
+                        <h3 class="section-label">기본 정보</h3>
+                        <div class="two-column">
+                            <div class="form-group">
+                                <label for="vd-title">문서 제목 *</label>
+                                <input id="vd-title" type="text">
+                            </div>
+                            <div class="form-group">
+                                <label for="vd-tags">태그 (쉼표)</label>
+                                <input id="vd-tags" type="text" placeholder="예: vibe, UX">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="vd-description">설명</label>
+                            <input id="vd-description" type="text" placeholder="프로젝트·문서 묶음 설명">
+                        </div>
+
+                        <h3 class="section-label">STATIK 업무 구조</h3>
+                        <div class="statik-grid statik-grid-4">
+                            <div class="form-group"><label for="vd-l1">L1 분류</label><input id="vd-l1" type="text" placeholder="예: 연구개발"></div>
+                            <div class="form-group"><label for="vd-l2">L2 대분류</label><input id="vd-l2" type="text" placeholder="예: 서비스 앱 개발"></div>
+                            <div class="form-group"><label for="vd-l3">L3 중분류</label><input id="vd-l3" type="text" placeholder="예: 프론트엔드 개발"></div>
+                            <div class="form-group"><label for="vd-l4">L4 모듈</label><input id="vd-l4" type="text" placeholder="예: UX 시나리오 기획"></div>
+                        </div>
+                        <div id="vibe-statik-breadcrumb" class="statik-breadcrumb helper"></div>
+
+                        <h3 class="section-label">상세 문서</h3>
+                        <div class="doc-tabs" role="tablist" aria-label="Vibe 문서 유형">
+                            <button type="button" class="doc-tab active" data-vibe-tab="readme">readme.md</button>
+                            <button type="button" class="doc-tab" data-vibe-tab="planDoc">개발 계획서</button>
+                            <button type="button" class="doc-tab" data-vibe-tab="uxScenario">UX 시나리오 설계서</button>
+                            <button type="button" class="doc-tab" data-vibe-tab="uiDesign">UI 디자인 설계서</button>
+                            <button type="button" class="doc-tab" data-vibe-tab="otherDoc">기타</button>
+                        </div>
+
+                        <div class="doc-tab-panel" data-vibe-panel="readme">
+                            <div class="form-group">
+                                <label for="vd-readme">직접 입력</label>
+                                <textarea id="vd-readme" rows="12" placeholder="# README&#10;프로젝트 개요, 설치, 사용법을 작성하세요."></textarea>
+                            </div>
+                            <div class="two-column">
+                                <div class="form-group">
+                                    <label for="vd-readme-file">TXT 파일 업로드</label>
+                                    <input id="vd-readme-file" type="file" accept=".txt,text/plain" data-vibe-section="readme">
+                                </div>
+                                <div class="form-group">
+                                    <label for="vd-readme-filename">원본 파일명</label>
+                                    <input id="vd-readme-filename" type="text" readonly placeholder="업로드한 파일명">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="doc-tab-panel hidden" data-vibe-panel="planDoc">
+                            <div class="form-group">
+                                <label for="vd-plan">직접 입력</label>
+                                <textarea id="vd-plan" rows="12" placeholder="개발 목표, 일정, 범위, 리스크를 작성하세요."></textarea>
+                            </div>
+                            <div class="two-column">
+                                <div class="form-group">
+                                    <label for="vd-plan-file">TXT 파일 업로드</label>
+                                    <input id="vd-plan-file" type="file" accept=".txt,text/plain" data-vibe-section="planDoc">
+                                </div>
+                                <div class="form-group">
+                                    <label for="vd-plan-filename">원본 파일명</label>
+                                    <input id="vd-plan-filename" type="text" readonly placeholder="업로드한 파일명">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="doc-tab-panel hidden" data-vibe-panel="uxScenario">
+                            <div class="form-group">
+                                <label for="vd-ux">직접 입력</label>
+                                <textarea id="vd-ux" rows="12" placeholder="사용자 여정, As-Is/To-Be, 핵심 시나리오를 작성하세요."></textarea>
+                            </div>
+                            <div class="two-column">
+                                <div class="form-group">
+                                    <label for="vd-ux-file">TXT 파일 업로드</label>
+                                    <input id="vd-ux-file" type="file" accept=".txt,text/plain" data-vibe-section="uxScenario">
+                                </div>
+                                <div class="form-group">
+                                    <label for="vd-ux-filename">원본 파일명</label>
+                                    <input id="vd-ux-filename" type="text" readonly placeholder="업로드한 파일명">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="doc-tab-panel hidden" data-vibe-panel="uiDesign">
+                            <div class="form-group">
+                                <label for="vd-ui">직접 입력</label>
+                                <textarea id="vd-ui" rows="12" placeholder="화면 구성, 컴포넌트, 인터랙션 가이드를 작성하세요."></textarea>
+                            </div>
+                            <div class="two-column">
+                                <div class="form-group">
+                                    <label for="vd-ui-file">TXT 파일 업로드</label>
+                                    <input id="vd-ui-file" type="file" accept=".txt,text/plain" data-vibe-section="uiDesign">
+                                </div>
+                                <div class="form-group">
+                                    <label for="vd-ui-filename">원본 파일명</label>
+                                    <input id="vd-ui-filename" type="text" readonly placeholder="업로드한 파일명">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="doc-tab-panel hidden" data-vibe-panel="otherDoc">
+                            <div class="form-group">
+                                <label for="vd-other">직접 입력</label>
+                                <textarea id="vd-other" rows="12" placeholder="기타 참고 문서, 메모, 체크리스트 등을 작성하세요."></textarea>
+                            </div>
+                            <div class="two-column">
+                                <div class="form-group">
+                                    <label for="vd-other-file">TXT 파일 업로드</label>
+                                    <input id="vd-other-file" type="file" accept=".txt,text/plain" data-vibe-section="otherDoc">
+                                </div>
+                                <div class="form-group">
+                                    <label for="vd-other-filename">원본 파일명</label>
+                                    <input id="vd-other-filename" type="text" readonly placeholder="업로드한 파일명">
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </section>
+
+            <section id="cases" class="view">
+                <div id="case-list-panel">
+                    <section class="panel">
+                        <div class="panel-head">
+                            <h2>Best Practice 목록</h2>
+                            <div class="panel-actions case-list-actions">
+                                <div class="search-bar-wrap">
+                                    <input id="case-search" class="search-bar" type="search" placeholder="제목·태그·요약 검색" aria-label="Best Practice 검색">
+                                    <span class="search-count" id="case-count">0건</span>
+                                </div>
+                                <button class="text-button" id="case-show-all-btn" type="button">전체 리스트 보기</button>
+                                <button class="primary-button admin-only" id="case-analyze-btn" type="button" disabled>문서 분석 등록</button>
+                            </div>
+                        </div>
+                        <div id="case-analyze-form" class="editor-panel hidden">
+                            <div class="form-group">
+                                <label for="case-pdf">원본 파일 (PDF 또는 PNG) *</label>
+                                <input id="case-pdf" type="file" accept="application/pdf,.pdf,image/png,.png">
+                            </div>
+                            <button class="primary-button" id="case-analyze-run" type="button">Gemini로 요약 등록</button>
+                            <p class="helper">PDF 또는 PNG를 업로드하면 Gemini AI가 주요 내용을 개조식으로 요약하고, 핵심 키워드 5개를 태그로 등록합니다.</p>
+                        </div>
+                        <div id="case-list" class="asset-list">
+                            <p class="status-msg">불러오는 중…</p>
+                        </div>
+                    </section>
+                </div>
+
+                <div id="case-detail-panel" class="hidden">
+                    <section class="panel">
+                        <div class="panel-head">
+                            <div>
+                                <button class="text-button" id="case-back-btn" type="button">← 목록으로</button>
+                                <h2 id="case-detail-title" style="margin-top:8px">Best Practice 상세</h2>
+                            </div>
+                            <div class="panel-actions">
+                                <button class="primary-button admin-only" id="case-save-btn" type="button" disabled>저장</button>
+                                <button class="text-button admin-only" id="case-delete-btn" type="button" disabled>삭제</button>
+                            </div>
+                        </div>
+
+                        <input type="hidden" id="case-detail-id">
+                        <p class="helper" id="case-detail-category"></p>
+
+                        <h3 class="section-label">기본 정보</h3>
+                        <div class="two-column">
+                            <div class="form-group">
+                                <label for="case-detail-case-title">제목 *</label>
+                                <input id="case-detail-case-title" type="text">
+                            </div>
+                            <div class="form-group">
+                                <label for="case-detail-tags">태그 (쉼표)</label>
+                                <input id="case-detail-tags" type="text" placeholder="예: OCR, 정산, 그룹웨어, 전표처리, 자동화">
+                            </div>
+                        </div>
+
+                        <h3 class="section-label">주요 내용</h3>
+                        <div class="form-group">
+                            <textarea id="case-detail-ai-summary" rows="8" placeholder="- 항목을 한 줄씩 입력"></textarea>
+                        </div>
+
+                        <h3 class="section-label">Before / After</h3>
+                        <div class="two-column case-ba">
+                            <div class="form-group">
+                                <label for="case-detail-before">Before</label>
+                                <textarea id="case-detail-before" rows="6" placeholder="- 도입 전 항목"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="case-detail-after">After</label>
+                                <textarea id="case-detail-after" rows="6" placeholder="- 도입 후 항목"></textarea>
+                            </div>
+                        </div>
+
+                        <h3 class="section-label">개선효과</h3>
+                        <div class="form-group">
+                            <textarea id="case-detail-outcome" rows="5" placeholder="- 정량·정성 효과"></textarea>
+                        </div>
+
+                        <h3 class="section-label">원본 문서</h3>
+                        <div id="case-pdf-wrap" class="pdf-viewer-wrap">
+                            <p class="status-msg" id="case-pdf-empty">업로드된 원본 파일이 없습니다.</p>
+                            <iframe id="case-pdf-frame" class="pdf-frame hidden" title="Best Practice PDF"></iframe>
+                            <img id="case-source-image" class="case-source-image hidden" alt="Best Practice 원본 이미지">
+                            <p class="helper" id="case-pdf-name"></p>
+                        </div>
+                    </section>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
+        <div class="modal-card">
+            <h3 id="modal-title">확인</h3>
+            <p id="modal-body" class="helper"></p>
+            <div class="modal-actions">
+                <button class="text-button" id="modal-cancel" type="button">취소</button>
+                <button class="primary-button" id="modal-confirm" type="button">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,743 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AX Hub - Consulting OS</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        :root {
+            --bg: #f5f6f8;
+            --panel: #ffffff;
+            --panel-soft: #f8f9fb;
+            --ink: #1c2128;
+            --ink-soft: #4b525e;
+            --muted: #868d99;
+            --line: #e6e8ec;
+            --line-strong: #d6dae1;
+            --blue: #3f6392;
+            --blue-soft: #eef2f8;
+            --green: #2f8265;
+            --green-soft: #eef6f2;
+            --yellow: #9a6b1e;
+            --yellow-soft: #fbf4e8;
+            --red: #b5473f;
+            --red-soft: #faf0ef;
+            --purple: #6b5fb0;
+            --shadow: 0 1px 2px rgba(20, 25, 35, 0.04), 0 4px 16px rgba(20, 25, 35, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            color: var(--ink);
+            background: var(--bg);
+            font-family: "Pretendard", "Pretendard Variable", "Segoe UI", "Malgun Gothic", Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            letter-spacing: -0.01em;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+
+        button, input, select {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .app-shell {
+            display: grid;
+            grid-template-columns: 248px minmax(0, 1fr);
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            padding: 24px 16px;
+            background: #1e232b;
+            border-right: 1px solid #2a2f38;
+            color: #f4f5f7;
+            overflow-y: auto;
+        }
+
+        .brand {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding: 0 8px 24px;
+        }
+
+        .brand-mark {
+            display: grid;
+            width: 42px;
+            height: 42px;
+            place-items: center;
+            border-radius: 10px;
+            background: var(--blue);
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            color: white;
+        }
+
+        .brand strong {
+            display: block;
+            color: #f4f5f7;
+            font-weight: 700;
+        }
+
+        .brand span {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .nav-list {
+            display: grid;
+            gap: 6px;
+        }
+
+        .nav-item {
+            width: 100%;
+            padding: 10px 12px;
+            color: #b7bcc6;
+            font-size: 13.5px;
+            font-weight: 500;
+            text-align: left;
+            background: transparent;
+            border: 0;
+            border-radius: 8px;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+
+        .nav-item:hover {
+            color: #fff;
+            background: #2b313b;
+        }
+
+        .nav-item.active {
+            color: #fff;
+            background: #2b313b;
+            font-weight: 600;
+            box-shadow: inset 3px 0 0 var(--blue);
+        }
+
+        .main {
+            min-width: 0;
+            padding: 28px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            gap: 16px;
+        }
+
+        .eyebrow {
+            margin: 0 0 6px;
+            color: var(--blue);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        h1, h2, h3, p {
+            margin-top: 0;
+        }
+
+        h1 {
+            margin-bottom: 0;
+            color: var(--ink);
+            font-size: 25px;
+            line-height: 1.25;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        h2 {
+            margin-bottom: 0;
+            color: var(--ink);
+            font-size: 16px;
+            line-height: 1.4;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .actions, .panel-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .panel-head {
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .primary-button, .text-button {
+            padding: 9px 15px;
+            border: 1px solid var(--line-strong);
+            border-radius: 8px;
+            background: #fff;
+            transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .primary-button {
+            color: #fff;
+            background: var(--blue);
+            border-color: var(--blue);
+        }
+
+        .primary-button:hover {
+            background: #35547e;
+            border-color: #35547e;
+        }
+
+        .text-button {
+            color: var(--blue);
+            background: #fff;
+        }
+
+        .text-button:hover {
+            background: var(--blue-soft);
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .metric {
+            padding: 18px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .metric span, .metric small {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .metric > span {
+            font-weight: 600;
+            color: var(--ink-soft);
+        }
+
+        .metric strong {
+            display: block;
+            margin: 8px 0 4px;
+            color: var(--ink);
+            font-size: 27px;
+            line-height: 1.1;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .panel {
+            min-width: 0;
+            padding: 20px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .project-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .project-row {
+            display: grid;
+            grid-template-columns: minmax(180px, 1fr) minmax(180px, 320px);
+            gap: 14px;
+            align-items: center;
+            padding: 13px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+        }
+
+        .project-row span {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .progress {
+            height: 9px;
+            overflow: hidden;
+            background: #e8eef8;
+            border-radius: 99px;
+        }
+
+        .progress span {
+            display: block;
+            height: 100%;
+            background: var(--green);
+        }
+
+        .badge {
+            display: inline-grid;
+            min-width: 30px;
+            min-height: 30px;
+            place-items: center;
+            padding: 4px 8px;
+            border-radius: 8px;
+            color: #3a5578;
+            background: var(--blue-soft);
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .alert-list {
+            display: grid;
+            gap: 10px;
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+
+        .alert-list li {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding: 10px;
+            background: var(--yellow-soft);
+            border-radius: 8px;
+        }
+
+        .alert-list b {
+            color: var(--red);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--ink);
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--ink);
+            background: white;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(63, 99, 146, 0.1);
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 6px 12px;
+            background: var(--blue-soft);
+            color: #3a5578;
+            border-radius: 99px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid #dde5f0;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-mark">AX</div>
+                <div>
+                    <strong>AX Hub</strong>
+                    <span>Consulting OS</span>
+                </div>
+            </div>
+            <nav class="nav-list" aria-label="AX Hub navigation">
+                <button class="nav-item active" data-view="dashboard">홈</button>
+                <button class="nav-item" data-view="register">등록</button>
+                <button class="nav-item" data-view="asset">Asset Library</button>
+                <button class="nav-item" data-view="prompts">프롬프트 공유</button>
+                <button class="nav-item" data-view="studio">프롬프트 스튜디오</button>
+                <button class="nav-item" data-view="projects">프로젝트</button>
+                <button class="nav-item" data-view="knowledge">지식 허브</button>
+            </nav>
+        </aside>
+
+        <main class="main">
+            <header class="topbar">
+                <div>
+                    <p class="eyebrow">통합 현황</p>
+                    <h1 id="view-title">메인 홈 / 통합 대시보드</h1>
+                </div>
+                <div class="actions">
+                    <button class="primary-button">프롬프트 업로드</button>
+                </div>
+            </header>
+
+            <section id="dashboard" class="view active">
+                <div class="kpi-grid">
+                    <article class="metric"><span>진행 프로젝트</span><strong>12</strong><small>월간 신규 3건</small></article>
+                    <article class="metric"><span>활용 프롬프트</span><strong>45</strong><small>주간 추가 2건</small></article>
+                    <article class="metric"><span>누적 절감 시간</span><strong>2,840h</strong><small>FTE 기준 1.26명</small></article>
+                    <article class="metric"><span>참여 부서</span><strong>8</strong><small>전사 72%</small></article>
+                </div>
+
+                <div class="dashboard-grid">
+                    <section class="panel">
+                        <div class="panel-head">
+                            <h2>프로젝트별 요약</h2>
+                            <button class="text-button">리포트 생성</button>
+                        </div>
+                        <div class="project-list">
+                            <article class="project-row">
+                                <div><strong>한빛 제조</strong><span>42개 과제 · 완료율 61%</span></div>
+                                <div class="progress"><span style="width:61%"></span></div>
+                            </article>
+                            <article class="project-row">
+                                <div><strong>에이원 유통</strong><span>27개 과제 · 완료율 44%</span></div>
+                                <div class="progress"><span style="width:44%"></span></div>
+                            </article>
+                            <article class="project-row">
+                                <div><strong>다온 금융</strong><span>19개 과제 · 완료율 73%</span></div>
+                                <div class="progress"><span style="width:73%"></span></div>
+                            </article>
+                        </div>
+                    </section>
+
+                    <section class="panel">
+                        <div class="panel-head">
+                            <h2>병목 및 리스크</h2>
+                        </div>
+                        <ul class="alert-list">
+                            <li><b>D</b><span>다온 금융 의사결정 Agent 검증 지연</span></li>
+                            <li><b>C</b><span>한빛 제조 품질 데이터 연동 실패</span></li>
+                            <li><b>B</b><span>에이원 유통 KPI 기준 미확정</span></li>
+                        </ul>
+                    </section>
+                </div>
+            </section>
+
+            <section id="register" class="view">
+                <div class="two-column">
+                    <section class="panel">
+                        <div class="panel-head"><h2>프롬프트 등록</h2></div>
+                        <div class="form-group">
+                            <label>프롬프트 제목 *</label>
+                            <input type="text" placeholder="월간 품질 리포트 자동 생성">
+                        </div>
+                        <div class="form-group">
+                            <label>카테고리 *</label>
+                            <select>
+                                <option>기획</option>
+                                <option>개발</option>
+                                <option>제조</option>
+                                <option>HR</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>프롬프트 내용 *</label>
+                            <textarea placeholder="마스킹 변수는 [변수명] 형식으로 작성하세요"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>변수명 (쉼표로 구분)</label>
+                            <input type="text" placeholder="부서명,핵심KPI,기간">
+                        </div>
+                        <button class="primary-button" style="width: 100%;">✅ 등록하기</button>
+                    </section>
+
+                    <section class="panel">
+                        <div class="panel-head"><h2>미리보기</h2></div>
+                        <div style="padding: 14px; background: var(--panel-soft); border-radius: 8px; border: 1px solid var(--line); font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; white-space: pre-wrap;">
+[부서명]의 월간 [핵심KPI] 분석 리포트를 작성해줘. 최근 3개월 추이를 포함하고, 개선방안 3가지를 제시해.</div>
+                        <div style="margin-top: 12px; padding: 10px; background: var(--blue-soft); border-radius: 8px; color: var(--blue); font-size: 12px;">
+변수: 부서명, 핵심KPI
+                        </div>
+                    </section>
+                </div>
+            </section>
+
+            <section id="asset" class="view">
+                <section class="panel">
+                    <div class="panel-head">
+                        <h2>Asset Library</h2>
+                        <button class="primary-button">자산 등록</button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+                        <article style="padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-soft);">
+                            <span class="badge">자동 추출 · 검토 완료</span>
+                            <h3 style="margin: 12px 0 6px; font-size: 16px;">품질 기준서 RAG 검색 패턴</h3>
+                            <p style="margin: 0 0 12px; color: var(--muted); font-size: 13px;">고객사명, 검사 코드, 시스템명은 마스킹된 프롬프트 패턴으로 저장됩니다.</p>
+                            <div style="display: grid; grid-template-columns: auto 1fr auto 1fr; gap: 8px 12px; margin-bottom: 12px; font-size: 12px;">
+                                <b style="color: var(--blue);">Before</b><span>기준서 수기 확인</span>
+                                <b style="color: var(--blue);">After</b><span>근거 문단 자동 추천</span>
+                            </div>
+                            <code style="display: block; padding: 10px; background: white; border: 1px solid var(--line); border-radius: 6px; font-size: 11px; margin: 0;">고객사 [CLIENT]의 [PROCESS] 기준서에서 [DEFECT_TYPE] 판정 근거를 찾아...</code>
+                        </article>
+
+                        <article style="padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-soft);">
+                            <span class="badge">직접 등록</span>
+                            <h3 style="margin: 12px 0 6px; font-size: 16px;">월간 리포트 생성 템플릿</h3>
+                            <p style="margin: 0 0 12px; color: var(--muted); font-size: 13px;">표준 KPI와 과제별 병목 요약을 결합하는 보고서 패턴입니다.</p>
+                            <div style="display: grid; grid-template-columns: auto 1fr auto 1fr; gap: 8px 12px; margin-bottom: 12px; font-size: 12px;">
+                                <b style="color: var(--blue);">Before</b><span>PM 수작업 취합</span>
+                                <b style="color: var(--blue);">After</b><span>프로젝트 단위 자동 초안</span>
+                            </div>
+                            <code style="display: block; padding: 10px; background: white; border: 1px solid var(--line); border-radius: 6px; font-size: 11px; margin: 0;">[PROJECT] 하위 과제의 완료율, 리스크, KPI 변화를 임원 보고 톤으로 요약...</code>
+                        </article>
+                    </div>
+                </section>
+            </section>
+
+            <section id="prompts" class="view">
+                <section class="panel">
+                    <div class="panel-head">
+                        <h2>프롬프트 공유</h2>
+                        <select style="width: auto; min-width: 160px;">
+                            <option>전체 카테고리</option>
+                            <option>기획</option>
+                            <option>개발</option>
+                            <option>제조</option>
+                        </select>
+                    </div>
+                    <div style="display: grid; gap: 12px;">
+                        <article style="padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-soft);">
+                            <div style="display: flex; justify-content: space-between; gap: 16px;">
+                                <div style="flex: 1; min-width: 0;">
+                                    <h3 style="margin: 0 0 6px; font-size: 15px;">월간 품질 리포트 자동 생성</h3>
+                                    <div style="display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
+                                        <span class="tag">기획</span>
+                                        <span class="tag">#데이터분석</span>
+                                        <span class="tag">#보고서</span>
+                                    </div>
+                                    <p style="margin: 0; font-size: 13px; color: var(--ink-soft); line-height: 1.5;">[부서명]의 월간 [핵심KPI] 분석 리포트를 작성해줘. 최근 3개월 추이를 포함하고, 개선방안 3가지를 제시해.</p>
+                                    <div style="margin-top: 8px; font-size: 12px; color: var(--muted);">등록: 마케팅팀</div>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+                                    <button class="text-button" style="padding: 6px 11px; font-size: 12px;">📋 복사</button>
+                                    <button style="padding: 6px 11px; border: 1px solid var(--line); border-radius: 8px; background: white; font-size: 12px; color: var(--muted);">❤️ 234</button>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article style="padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-soft);">
+                            <div style="display: flex; justify-content: space-between; gap: 16px;">
+                                <div style="flex: 1; min-width: 0;">
+                                    <h3 style="margin: 0 0 6px; font-size: 15px;">고객 이탈 예측 분석</h3>
+                                    <div style="display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
+                                        <span class="tag">제조</span>
+                                        <span class="tag">#예측분석</span>
+                                        <span class="tag">#고객관리</span>
+                                    </div>
+                                    <p style="margin: 0; font-size: 13px; color: var(--ink-soft); line-height: 1.5;">[고객사명]의 최근 3개월 거래량 변화를 분석하고, 이탈 위험도를 10점 만점으로 평가해줘.</p>
+                                    <div style="margin-top: 8px; font-size: 12px; color: var(--muted);">등록: 영업팀</div>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+                                    <button class="text-button" style="padding: 6px 11px; font-size: 12px;">📋 복사</button>
+                                    <button style="padding: 6px 11px; border: 1px solid var(--line); border-radius: 8px; background: white; font-size: 12px; color: var(--muted);">❤️ 189</button>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+            </section>
+
+            <section id="studio" class="view">
+                <section class="panel">
+                    <div class="panel-head"><h2>프롬프트 스튜디오</h2></div>
+                    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px;">
+                        <div>
+                            <h3 style="margin: 0 0 12px; font-size: 14px; color: var(--ink);">변수 입력</h3>
+                            <div class="form-group">
+                                <label>부서명 *</label>
+                                <input type="text" placeholder="예: 마케팅팀" id="var1">
+                            </div>
+                            <div class="form-group">
+                                <label>핵심KPI *</label>
+                                <input type="text" placeholder="예: 고객만족도" id="var2">
+                            </div>
+                        </div>
+                        <div>
+                            <h3 style="margin: 0 0 12px; font-size: 14px; color: var(--ink);">프롬프트 미리보기</h3>
+                            <div style="padding: 14px; background: var(--panel-soft); border: 1px solid var(--line); border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6; white-space: pre-wrap; min-height: 120px;" id="preview">[부서명]의 월간 [핵심KPI] 분석 리포트를 작성해줘. 최근 3개월 추이를 포함하고, 개선방안 3가지를 제시해.</div>
+                            <div style="margin-top: 12px; display: flex; gap: 8px;">
+                                <button class="primary-button" style="flex: 1;">📋 복사</button>
+                                <button class="text-button" style="flex: 1;">🚀 AI 실행</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <section id="projects" class="view">
+                <section class="panel">
+                    <div class="panel-head"><h2>프로젝트 목록</h2></div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>프로젝트명</th>
+                                <th>고객사</th>
+                                <th>완료율</th>
+                                <th>상태</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>설비 이상징후 요약</td>
+                                <td>한빛 제조</td>
+                                <td>
+                                    <div class="progress" style="margin: 0;"><span style="width: 68%;"></span></div>
+                                </td>
+                                <td><span class="badge">진행중</span></td>
+                            </tr>
+                            <tr>
+                                <td>월간 생산 리포트 자동화</td>
+                                <td>한빛 제조</td>
+                                <td>
+                                    <div class="progress" style="margin: 0;"><span style="width: 92%;"></span></div>
+                                </td>
+                                <td><span class="badge">완료</span></td>
+                            </tr>
+                            <tr>
+                                <td>품질 판정 Workflow Agent</td>
+                                <td>한빛 제조</td>
+                                <td>
+                                    <div class="progress" style="margin: 0;"><span style="width: 41%;"></span></div>
+                                </td>
+                                <td><span class="badge">진행중</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+            </section>
+
+            <section id="knowledge" class="view">
+                <section class="panel">
+                    <div class="panel-head"><h2>AX 우수 사례</h2></div>
+                    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px;">
+                        <article style="padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-soft);">
+                            <h3 style="margin: 0 0 12px; font-size: 15px;">월간 매출 분석 보고서 자동화</h3>
+                            <div style="font-size: 12px; margin-bottom: 12px; color: var(--muted);">기획팀</div>
+                            <div style="display: grid; grid-template-columns: auto 1fr auto 1fr; gap: 8px 12px; margin-bottom: 12px; font-size: 12px;">
+                                <b style="color: var(--blue);">Before</b><span>월 8시간 (수동)</span>
+                                <b style="color: var(--blue);">After</b><span>월 30분 (자동화)</span>
+                            </div>
+                            <div style="padding: 10px; background: var(--yellow-soft); border-radius: 6px; font-size: 12px; font-weight: 600; color: var(--yellow); margin-bottom: 8px;">
+효율성: 93.75%
+                            </div>
+                            <div style="font-size: 12px; color: var(--muted);">💡 연간 약 1,240시간 절감</div>
+                        </article>
+
+                        <article style="padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-soft);">
+                            <h3 style="margin: 0 0 12px; font-size: 15px;">고객 만족도 조사 분석</h3>
+                            <div style="font-size: 12px; margin-bottom: 12px; color: var(--muted);">마케팅팀</div>
+                            <div style="display: grid; grid-template-columns: auto 1fr auto 1fr; gap: 8px 12px; margin-bottom: 12px; font-size: 12px;">
+                                <b style="color: var(--blue);">Before</b><span>주 4시간 (수기)</span>
+                                <b style="color: var(--blue);">After</b><span>주 30분 (AI)</span>
+                            </div>
+                            <div style="padding: 10px; background: var(--yellow-soft); border-radius: 6px; font-size: 12px; font-weight: 600; color: var(--yellow); margin-bottom: 8px;">
+효율성: 87.5%
+                            </div>
+                            <div style="font-size: 12px; color: var(--muted);">💡 데이터 기반 의사결정 가능</div>
+                        </article>
+                    </div>
+                </section>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Navigation
+        document.querySelectorAll('.nav-item').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                btn.classList.add('active');
+                const viewId = btn.dataset.view;
+                document.getElementById(viewId)?.classList.add('active');
+
+                const titles = {
+                    dashboard: '메인 홈 / 통합 대시보드',
+                    register: '프롬프트 등록',
+                    asset: 'Asset Library',
+                    prompts: '프롬프트 공유',
+                    studio: '프롬프트 스튜디오',
+                    projects: '프로젝트 관리',
+                    knowledge: 'AX 우수 사례'
+                };
+                document.getElementById('view-title').textContent = titles[viewId] || '메인 홈';
+            });
+        });
+
+        // Prompt Studio Preview
+        const var1 = document.getElementById('var1');
+        const var2 = document.getElementById('var2');
+        const preview = document.getElementById('preview');
+        const template = '[부서명]의 월간 [핵심KPI] 분석 리포트를 작성해줘. 최근 3개월 추이를 포함하고, 개선방안 3가지를 제시해.';
+
+        function updatePreview() {
+            let text = template;
+            text = text.replace('[부서명]', var1.value || '[부서명]');
+            text = text.replace('[핵심KPI]', var2.value || '[핵심KPI]');
+            preview.textContent = text;
+        }
+
+        var1.addEventListener('input', updatePreview);
+        var2.addEventListener('input', updatePreview);
+    </script>
+</body>
+</html>

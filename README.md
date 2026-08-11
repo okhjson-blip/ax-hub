@@ -1,93 +1,97 @@
-# AX Hub
+# AX Hub — Consulting OS
 
+AX 컨설팅 지식운영체제. 홈에서 과제 현황을 보고, 과제·프롬프트·Vibe Coding·Best Practice를 라이브러리로 축적한다.
 
+- 로컬: http://127.0.0.1:3090
+- 프로덕션: https://ax-hub-share.vercel.app
+- 기본 모드는 **공유(읽기)**. 쓰기는 관리자 로그인 후만 가능.
 
-## Getting started
+관련 문서: [개발 계획서](docs/개발-계획서.md) · [UX 시나리오 설계서](docs/UX-시나리오-설계서.md) · [UI 디자인 설계서](docs/UI-디자인-설계서.md) · [배포 가이드](docs/DEPLOY.md)
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## 무엇을 하는가
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+| 화면 | 역할 |
+|------|------|
+| 홈 | ax-pjt-dashboard 과제 KPI·요약·정체 리스크. 관리자는 현황 업데이트·과제 Library 이관 |
+| 과제 Library | STATIK L1~L4, AX 성과지표, As-Is/To-Be 프로세스 |
+| 프롬프트 Library | 템플릿·변수·TXT 업로드, STATIK 분류 |
+| Vibe Coding Library | readme / 개발 계획서 / UX 시나리오 / UI 디자인 / 기타 문서 묶음 |
+| Best Practice Library | PDF·PNG를 Gemini가 개조식 요약. 분야 11개 택일, 핵심 키워드 태그 5개 |
 
-## Add your files
-
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+## 아키텍처
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/okhjson/ax-hub.git
-git branch -M main
-git push -uf origin main
+브라우저 (public/) ──Express──► API (backend/src, Vercel api/index.js)
+                                  │
+                                  ├─ SUPABASE_*            ax-hub Library (hub_*)
+                                  ├─ DASHBOARD_SUPABASE_*  ax-pjt-dashboard 소스
+                                  ├─ Storage hub-assets    PDF/PNG
+                                  └─ Gemini                Best Practice 분석
 ```
 
-## Integrate with your tools
+홈 KPI는 대시보드 DB를 **읽고**, `GET /api/hub-summary` 때 ax-hub 대시보드 테이블에 **미러링**한다. 라이브러리 CRUD는 ax-hub `hub_*`만 사용한다. 프론트에는 anon/publishable key를 넣지 않고, 서버 service role만 쓴다.
 
-* [Set up project integrations](https://gitlab.com/okhjson/ax-hub/-/settings/integrations)
+## 스택
 
-## Collaborate with your team
+- UI: 정적 HTML/CSS/JS (`public/`), Pretendard
+- API: Node 18+, Express 4, Multer
+- DB: Supabase Postgres + RLS (anon 정책 없음)
+- AI: `@google/generative-ai`, 기본 `gemini-3.5-flash-lite`
+- 배포: Vercel Serverless (`api/index.js`, Framework Other)
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+## 디렉터리
 
-## Test and Deploy
+```
+api/index.js              Vercel 엔트리
+backend/src/              Express 앱·라우트·도메인
+public/                   SPA (index.html, css, js)
+supabase/migrations/      hub_* + 대시보드 소스 스키마
+docs/                     계획·UX·UI·배포
+```
 
-Use the built-in continuous integration in GitLab.
+## 로컬 실행
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
+```bash
+cp .env.example .env
+# SUPABASE_URL, SUPABASE_SECRET_KEY
+# DASHBOARD_SUPABASE_URL, DASHBOARD_SUPABASE_SECRET_KEY
+# ADMIN_PASSWORD, DATABASE_URL (마이그레이션용)
 
-***
+npm install
+npm run db:migrate
+npm run db:verify
+npm start
+# http://127.0.0.1:3090
+```
 
-# Editing this README
+`GET /api/health` → `db: "supabase"`, `supabaseConfigured: true`.
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+관리자 비밀번호 기본값은 `admin2026` (`.env`의 `ADMIN_PASSWORD`). 프로덕션에서는 반드시 변경한다.
 
-## Suggestions for a good README
+## 환경변수
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+| 변수 | 용도 |
+|------|------|
+| `SUPABASE_URL` / `SUPABASE_SECRET_KEY` | ax-hub Library |
+| `DASHBOARD_SUPABASE_URL` / `DASHBOARD_SUPABASE_SECRET_KEY` | 홈 대시보드 소스 |
+| `ADMIN_PASSWORD` / `ADMIN_TOKEN_SECRET` | 관리자 로그인·토큰 서명 |
+| `DATABASE_URL` | 로컬 마이그레이션만 |
+| `GEMINI_API_KEY` / `GEMINI_MODEL` | Best Practice 분석 (UI에서도 등록 가능) |
 
-## Name
-Choose a self-explaining name for your project.
+별칭: `SUPABASE_SERVICE_ROLE_KEY` ↔ `SUPABASE_SECRET_KEY`. 상세는 `.env.example`, 배포는 [docs/DEPLOY.md](docs/DEPLOY.md).
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+## API 요약
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+읽기(공유 가능): `GET /api/health`, `/hub-summary`, `/task-assets`, `/prompts`, `/vibe-docs`, `/cases`, `/cases/:id/pdf`
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+쓰기(관리자 Bearer): 각 라이브러리 POST/PATCH/DELETE, `POST /api/task-assets/import`, `POST /api/cases/analyze`, `POST /api/gemini/key`
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+`POST /api/cases/analyze`는 PDF 또는 PNG(≤15MB). Gemini가 개조식 요약·분야 택일·태그 5개를 채운 뒤 `published`로 저장한다.
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+## 데이터
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+Library: `hub_task_assets`, `hub_prompts`, `hub_vibe_docs`, `hub_cases`, `hub_settings`
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+홈 미러: `companies`, `participants`, `tasks`, `app_meta`, `task_weekly_reports`
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Storage: private 버킷 `hub-assets` (`application/pdf`, `image/png`)
