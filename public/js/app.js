@@ -560,20 +560,46 @@
     document.getElementById("task-detail-panel")?.classList.remove("hidden");
   }
 
-  function parseStepsFromText(text) {
+  function parseStepsFromText(text, kind = "asis") {
     return String(text || "")
-      .split(/\n/)
+      .split(/\s*>\s*|\n/)
       .map((line) => line.trim())
       .filter(Boolean)
       .map((line) => {
         const cleaned = line.replace(/^\d+\.\s*/, "");
-        const parts = cleaned.split(/\s*[—–-]\s*/);
+        const bracket = cleaned.match(/^(.*?)\s*\[([^\]]+)\]\s*$/);
+        if (bracket) {
+          const inner = bracket[2].split(/[｜|]/).map((s) => s.trim()).filter(Boolean);
+          const minutesRaw = String(inner[2] || "").replace(/분/g, "").replace(/,/g, "").trim();
+          const minutes = minutesRaw === "" ? null : Number(minutesRaw);
+          const diffRaw = String(inner[3] || "").replace(/난이도/g, "").trim();
+          return {
+            name: bracket[1].trim(),
+            method: inner[0] || "",
+            tool: inner[1] || "",
+            minutes: Number.isFinite(minutes) ? minutes : null,
+            difficulty: kind === "tobe" ? (diffRaw || "-") : ""
+          };
+        }
+        const parts = cleaned.split(/\s*[—–]\s*/);
+        if (parts.length > 1) {
+          const bits = parts.slice(1).join(" — ").split(/\s*\/\s*/).map((s) => s.trim());
+          const minutesRaw = String(bits[2] || "").replace(/분/g, "").trim();
+          const minutes = minutesRaw === "" ? null : Number(minutesRaw);
+          return {
+            name: parts[0].trim(),
+            method: bits[0] || "",
+            tool: bits[1] || "",
+            minutes: Number.isFinite(minutes) ? minutes : null,
+            difficulty: kind === "tobe" ? "-" : ""
+          };
+        }
         return {
-          name: (parts[0] || cleaned).trim(),
+          name: cleaned,
           method: "",
           tool: "",
           minutes: null,
-          difficulty: ""
+          difficulty: kind === "tobe" ? "-" : ""
         };
       });
   }
@@ -720,11 +746,11 @@
     const asIs =
       item?.asIsSteps?.length
         ? item.asIsSteps
-        : parseStepsFromText(item?.asIsProcess);
+        : parseStepsFromText(item?.asIsProcess, "asis");
     const toBe =
       item?.toBeSteps?.length
         ? item.toBeSteps.map((s) => ({ ...s, difficulty: s.difficulty || "-" }))
-        : parseStepsFromText(item?.toBeProcess).map((s) => ({ ...s, difficulty: "-" }));
+        : parseStepsFromText(item?.toBeProcess, "tobe").map((s) => ({ ...s, difficulty: s.difficulty || "-" }));
     renderStepEditor("asis-steps", asIs, isAdmin());
     renderStepEditor("tobe-steps", toBe, isAdmin());
     setDetailEditable(isAdmin());

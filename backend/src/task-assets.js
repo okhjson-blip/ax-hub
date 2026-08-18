@@ -6,27 +6,155 @@ function asArray(value) {
   return Array.isArray(value) ? value : [];
 }
 
+function toNumberOrNull(value) {
+  if (value == null || value === "") return null;
+  const n = Number(String(value).replace(/,/g, "").replace(/분/g, "").trim());
+  return Number.isFinite(n) ? n : null;
+}
+
+function parseDifficultyToken(value, fallback = "") {
+  const raw = String(value || "")
+    .replace(/난이도/g, "")
+    .trim();
+  if (raw === "상" || raw === "중" || raw === "하" || raw === "-") return raw;
+  return fallback;
+}
+
+function parseProcessSteps(text, kind = "asis") {
+  const raw = String(text || "").trim();
+  if (!raw) return [];
+  return raw
+    .split(/\s*>\s*|\r?\n/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => {
+      const cleaned = part.replace(/^\d+\.\s*/, "");
+      const bracket = cleaned.match(/^(.*?)\s*\[([^\]]+)\]\s*$/);
+      if (bracket) {
+        const name = bracket[1].trim();
+        const inner = bracket[2]
+          .split(/[｜|]/)
+          .map((s) => s.trim())
+          .filter(Boolean);
+        const method = inner[0] || "";
+        const tool = inner[1] || "";
+        const minutes = toNumberOrNull(inner[2]);
+        const difficulty = kind === "tobe" ? parseDifficultyToken(inner[3], "-") : "";
+        return { name, method, tool, minutes, difficulty };
+      }
+      const dash = cleaned.split(/\s*[—–]\s*/);
+      if (dash.length > 1) {
+        const name = dash[0].trim();
+        const bits = dash
+          .slice(1)
+          .join(" — ")
+          .split(/\s*\/\s*/)
+          .map((s) => s.trim());
+        return {
+          name,
+          method: bits[0] || "",
+          tool: bits[1] || "",
+          minutes: toNumberOrNull(bits[2]),
+          difficulty: kind === "tobe" ? parseDifficultyToken(bits[3], "-") : ""
+        };
+      }
+      return {
+        name: cleaned,
+        method: "",
+        tool: "",
+        minutes: null,
+        difficulty: kind === "tobe" ? "-" : ""
+      };
+    })
+    .filter((s) => s.name);
+}
+
+function mapStatik(extras) {
+  const src =
+    (extras.statik && typeof extras.statik === "object" && extras.statik) ||
+    (extras.hierarchy && typeof extras.hierarchy === "object" && extras.hierarchy) ||
+    {};
+  return {
+    l1: String(src.l1 || "").trim(),
+    l2: String(src.l2 || "").trim(),
+    l3: String(src.l3 || "").trim(),
+    l4: String(src.l4 || "").trim(),
+    l5: String(src.l5 || "").trim(),
+    l6: String(src.l6 || "").trim()
+  };
+}
+
+function formatFrequency(stats) {
+  const unit = String(stats.frequencyUnit || "").trim();
+  const count = stats.frequencyCount;
+  const annual = stats.annualFrequency;
+  const hasCount = count != null && count !== "";
+  const hasAnnual = annual != null && annual !== "";
+  if (unit && hasCount) {
+    return hasAnnual ? `${unit} ${count}회 (연간 ${annual}회)` : `${unit} ${count}회`;
+  }
+  if (hasAnnual) return `연간 ${annual}회`;
+  return String(stats.frequency || "").trim();
+}
+
+function mapKpis(extras) {
+  const kpis = extras.kpis && typeof extras.kpis === "object" ? extras.kpis : {};
+  const stats = extras.statistics && typeof extras.statistics === "object" ? extras.statistics : {};
+  const pick = (...values) => {
+    for (const value of values) {
+      if (value == null || value === "") continue;
+      const n = toNumberOrNull(value);
+      if (n != null) return n;
+      return value;
+    }
+    return "";
+  };
+  return {
+    asIsMinutes: pick(kpis.asIsMinutes, stats.asIsTotalTime, stats.as_is_total_time),
+    toBeMinutes: pick(kpis.toBeMinutes, stats.toBeTotalTime, stats.to_be_total_time),
+    savedMinutes: pick(kpis.savedMinutes, stats.timeSavings, stats.time_savings),
+    savingRatePct: pick(kpis.savingRatePct, stats.timeSavingsRate, stats.time_savings_rate),
+    frequency: String(kpis.frequency || formatFrequency(stats) || "").trim(),
+    annualSavedHours: pick(kpis.annualSavedHours, stats.annualSavingsHours, stats.annual_savings_hours),
+    fte: pick(kpis.fte, stats.fteEquivalent, stats.fte_equivalent),
+    automationRatePct: pick(kpis.automationRatePct, stats.automationRate, stats.automation_rate)
+  };
+}
+
+function mapMembersAndAssignees(extras) {
+  const fromParticipants = asArray(extras.participants)
+    .map((p) => ({
+      name: String(p?.name || "").trim(),
+      role: String(p?.role || p?.position || "").trim(),
+      email: String(p?.email || "").trim(),
+      responsibility: String(p?.responsibility || "").trim() || (p?.isOwner ? "과제 리더" : "과제 담당자")
+    }))
+    .filter((p) => p.name);
+  const fromMembers = asArray(extras.members)
+    .map((m) => ({
+      name: String(m?.name || "").trim(),
+      role: String(m?.role || m?.position || "").trim(),
+      email: String(m?.email || "").trim(),
+      responsibility: m?.isOwner ? "과제 리더" : String(m?.responsibility || "").trim() || "과제 담당자"
+    }))
+    .filter((m) => m.name);
+  const participants = fromParticipants.length ? fromParticipants : fromMembers;
+  const nonLeaders = participants.filter((p) => p.responsibility !== "과제 리더");
+  const fallback = Math.max(0, Number(extras.assigneeCount) || 0);
+  const assigneeCount = participants.length ? nonLeaders.length || fallback || 1 : fallback;
+  return { participants, assigneeCount };
+}
+
 function mapAssetRow(row) {
   const extras = row.extras && typeof row.extras === "object" ? row.extras : {};
-  const participants = asArray(extras.participants);
-  const membersExcludingLeader = participants.filter((p) => {
-    const responsibility = String(p?.responsibility || "").trim();
-    return responsibility && responsibility !== "과제 리더";
-  });
-  const assigneeCount = participants.length
-    ? membersExcludingLeader.length
-    : Math.max(0, Number(extras.assigneeCount) || 0);
-  const statik =
-    extras.statik && typeof extras.statik === "object"
-      ? {
-          l1: String(extras.statik.l1 || "").trim(),
-          l2: String(extras.statik.l2 || "").trim(),
-          l3: String(extras.statik.l3 || "").trim(),
-          l4: String(extras.statik.l4 || "").trim(),
-          l5: String(extras.statik.l5 || "").trim(),
-          l6: String(extras.statik.l6 || "").trim()
-        }
-      : { l1: "", l2: "", l3: "", l4: "", l5: "", l6: "" };
+  const { participants, assigneeCount } = mapMembersAndAssignees(extras);
+  const statik = mapStatik(extras);
+  const asIsSteps = asArray(extras.asIsSteps).length
+    ? asArray(extras.asIsSteps)
+    : parseProcessSteps(row.as_is_process, "asis");
+  const toBeSteps = asArray(extras.toBeSteps).length
+    ? asArray(extras.toBeSteps)
+    : parseProcessSteps(row.to_be_process, "tobe");
 
   return {
     id: row.id,
@@ -49,9 +177,9 @@ function mapAssetRow(row) {
     extras,
     assigneeCount,
     statik,
-    kpis: extras.kpis && typeof extras.kpis === "object" ? extras.kpis : {},
-    asIsSteps: asArray(extras.asIsSteps),
-    toBeSteps: asArray(extras.toBeSteps),
+    kpis: mapKpis(extras),
+    asIsSteps,
+    toBeSteps,
     importedAt: row.imported_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at
@@ -234,20 +362,17 @@ async function importTasks(taskIds) {
     const participant = participantById.get(task.participant_id);
     const company = participant ? companyById.get(participant.company_id) : null;
     const extras = task.extras && typeof task.extras === "object" ? task.extras : {};
-    const asIsSteps = extras.asIsProcess
-      ? String(extras.asIsProcess)
-          .split(/>|\n/)
-          .map((s) => s.trim())
-          .filter(Boolean)
-          .map((name) => ({ name, method: "", tool: "", minutes: null }))
-      : [];
-    const toBeSteps = extras.toBeProcess
-      ? String(extras.toBeProcess)
-          .split(/>|\n/)
-          .map((s) => s.trim())
-          .filter(Boolean)
-          .map((name) => ({ name, method: "", tool: "", minutes: null }))
-      : [];
+    const asIsSteps = asArray(extras.asIsSteps).length
+      ? normalizeSteps(extras.asIsSteps)
+      : parseProcessSteps(extras.asIsProcess, "asis");
+    const toBeSteps = asArray(extras.toBeSteps).length
+      ? normalizeSteps(extras.toBeSteps)
+      : parseProcessSteps(extras.toBeProcess, "tobe");
+    const { participants: taskParticipants, assigneeCount } = mapMembersAndAssignees(extras);
+    const statik = mapStatik(extras);
+    const kpis = mapKpis(extras);
+    const startDate = extras.startDate || company?.start_date || "";
+    const endDate = extras.endDate || company?.end_date || "";
 
     rows.push({
       id: uid("ta"),
@@ -260,11 +385,11 @@ async function importTasks(taskIds) {
       dept: participant?.dept || "",
       difficulty: normalizeDifficulty(extras.difficulty || "중"),
       progress: Number(task.progress || 0),
-      start_date: extras.startDate || "",
-      end_date: extras.endDate || "",
+      start_date: startDate,
+      end_date: endDate,
       goal: extras.goal || "",
-      as_is_process: extras.asIsProcess || "",
-      to_be_process: extras.toBeProcess || "",
+      as_is_process: asIsSteps.length ? stepsToText(asIsSteps) : extras.asIsProcess || "",
+      to_be_process: toBeSteps.length ? stepsToText(toBeSteps) : extras.toBeProcess || "",
       body: [
         extras.goal ? `목표: ${extras.goal}` : "",
         task.weekly_summary ? `주간요약: ${task.weekly_summary}` : ""
@@ -273,11 +398,15 @@ async function importTasks(taskIds) {
         .join("\n"),
       tags: [],
       extras: {
+        ...extras,
         reportCompleted: Boolean(task.report_completed),
         weeklySummary: task.weekly_summary || "",
         nextWeekPlan: task.next_week_plan || "",
-        assigneeCount: 1,
-        kpis: {},
+        participants: taskParticipants,
+        assigneeCount,
+        statik,
+        hierarchy: extras.hierarchy || statik,
+        kpis,
         asIsSteps,
         toBeSteps
       }
