@@ -4,7 +4,7 @@ AX 컨설팅 지식운영체제. 홈에서 과제 현황을 보고, 과제·프�
 
 - 로컬: http://127.0.0.1:3090
 - 프로덕션: https://ax-hub-share.vercel.app
-- 기본 모드는 **공유(읽기)**. 쓰기는 관리자 로그인 후만 가능.
+- 기본 모드는 **공유(읽기)**. 사이트 진입 시 접근 비밀번호(`ax2026h2`)가 필요하고, 쓰기는 관리자 로그인 후만 가능.
 
 관련 문서: [개발 계획서](docs/개발-계획서.md) · [UX 시나리오 설계서](docs/UX-시나리오-설계서.md) · [UI 디자인 설계서](docs/UI-디자인-설계서.md) · [배포 가이드](docs/DEPLOY.md)
 
@@ -75,6 +75,7 @@ npm start
 | `SUPABASE_URL` / `SUPABASE_SECRET_KEY` | ax-hub Library |
 | `DASHBOARD_SUPABASE_URL` / `DASHBOARD_SUPABASE_SECRET_KEY` | 홈 대시보드 소스 |
 | `ADMIN_PASSWORD` / `ADMIN_TOKEN_SECRET` | 관리자 로그인·토큰 서명 |
+| `ACCESS_PASSWORD` | 홈 진입 전 접근 비밀번호 (기본 `ax2026h2`) |
 | `DATABASE_URL` | 로컬 마이그레이션만 |
 | `GEMINI_API_KEY` / `GEMINI_MODEL` | Best Practice 분석 (UI에서도 등록 가능) |
 

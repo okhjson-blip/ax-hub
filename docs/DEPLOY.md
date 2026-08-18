@@ -22,7 +22,8 @@
 | `DASHBOARD_SUPABASE_URL` | ax-pjt-dashboard 소스 | 홈 대시보드·과제 이관 읽기 |
 | `DASHBOARD_SUPABASE_SECRET_KEY` | dashboard service role | 서버 전용 |
 | `ADMIN_PASSWORD` | 관리자 로그인 | |
-| `ADMIN_TOKEN_SECRET` | 관리자 토큰 서명 | 프로덕션에서 반드시 변경 |
+| `ACCESS_PASSWORD` | 홈 진입 전 접근 비밀번호 | 기본 `ax2026h2` |
+| `ADMIN_TOKEN_SECRET` | 관리자·접근 토큰 서명 | 프로덕션에서 반드시 변경 |
 | `DATABASE_URL` | 마이그레이션용 Postgres | 로컬 마이그레이션에만 필요 (Pooler 6543 권장) |
 | `GEMINI_API_KEY` | Best Practice PDF 분석 | 선택. UI에서도 `hub_settings`에 저장 가능 |
 | `GEMINI_MODEL` | Gemini 모델명 | 기본 `gemini-3.5-flash-lite`. 미지원 시 `gemini-flash-lite-latest` 폴백 |
@@ -96,12 +97,13 @@ npx vercel deploy --prod --yes
 ### Vercel에서 주의할 점
 
 - **에페메럴 FS**: 로컬 `uploads/`·`data/`는 배포 환경에서 유지되지 않음. PDF는 Supabase Storage, Gemini 키는 `hub_settings` 또는 env 사용.
-- **PDF 분석**: `maxDuration` 60초. 대용량 PDF는 타임아웃 가능.
+- **PDF 분석**: `maxDuration` 300초. 대용량 PDF는 타임아웃 가능.
 - `DATABASE_URL`은 Vercel에 넣지 않아도 됩니다(런타임은 supabase-js만 사용).
 
 ## API 요약
 
-- `GET /api/health`, `GET /api/hub-summary`
+- `GET /api/health`, `GET/POST /api/auth/access`
+- `GET /api/hub-summary` (접근 토큰 필요)
 - `POST /api/auth/admin`
 - `GET/POST /api/task-assets`, `POST /api/task-assets/import`
 - CRUD `/api/prompts`, `/api/vibe-docs`, `/api/cases`

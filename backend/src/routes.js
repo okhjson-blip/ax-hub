@@ -2,7 +2,18 @@ const express = require("express");
 const multer = require("multer");
 const { isSupabaseConfigured, isDashboardSupabaseConfigured } = require("./env");
 const { buildHubSummary } = require("./hub-summary");
-const { adminPassword, createAdminToken, requireAdmin } = require("./auth");
+const {
+  adminPassword,
+  accessPassword,
+  createAdminToken,
+  createAccessToken,
+  verifyAccessToken,
+  readAccessToken,
+  setAccessCookie,
+  requireAccess,
+  requireAdmin,
+  timingSafeEqualString
+} = require("./auth");
 const { listTaskAssets, listImportedSourceIds, importTasks, deleteTaskAsset, getTaskAsset, createTaskAsset, updateTaskAsset } = require("./task-assets");
 const {
   listPrompts,
@@ -75,6 +86,32 @@ function createRouter() {
     });
   });
 
+  router.get("/auth/access", (req, res) => {
+    const ok = verifyAccessToken(readAccessToken(req));
+    res.status(ok ? 200 : 401).json({ ok, access: ok });
+  });
+
+  router.post("/auth/access", (req, res) => {
+    const password = String(req.body?.password || "");
+    if (!timingSafeEqualString(password, accessPassword())) {
+      return res.status(401).json({ error: "비밀번호가 올바르지 않습니다." });
+    }
+    const token = createAccessToken();
+    setAccessCookie(res, token);
+    res.json({ ok: true, role: "access", token });
+  });
+
+  router.use(requireAccess);
+
+  router.post("/auth/admin", (req, res) => {
+    const password = String(req.body?.password || "");
+    if (password !== adminPassword()) {
+      return res.status(401).json({ error: "비밀번호가 올바르지 않습니다." });
+    }
+    const token = createAdminToken();
+    res.json({ role: "admin", name: "관리자", token });
+  });
+
   router.get(
     "/gemini/status",
     asyncHandler(async (_req, res) => {
@@ -94,15 +131,6 @@ function createRouter() {
       res.json({ ok: true, ...status });
     })
   );
-
-  router.post("/auth/admin", (req, res) => {
-    const password = String(req.body?.password || "");
-    if (password !== adminPassword()) {
-      return res.status(401).json({ error: "비밀번호가 올바르지 않습니다." });
-    }
-    const token = createAdminToken();
-    res.json({ role: "admin", name: "관리자", token });
-  });
 
   router.get(
     "/hub-summary",

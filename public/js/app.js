@@ -9,6 +9,7 @@
 
   const DIFFICULTY_RANK = { 상: 0, 중: 1, 하: 2 };
   const TOKEN_KEY = "axHubAdminToken";
+  const ACCESS_TOKEN_KEY = "axHubAccessToken";
   const VIBE_SECTIONS = [
     { key: "readme", fieldId: "vd-readme", fileId: "vd-readme-file", filenameId: "vd-readme-filename", label: "readme.md" },
     { key: "planDoc", fieldId: "vd-plan", fileId: "vd-plan-file", filenameId: "vd-plan-filename", label: "개발 계획서" },
@@ -19,6 +20,7 @@
 
   let cachedTasks = [];
   let importedTaskIds = new Set();
+  let accessToken = sessionStorage.getItem(ACCESS_TOKEN_KEY) || "";
   let adminToken = localStorage.getItem(TOKEN_KEY) || "";
   let currentView = "home";
   let cachedTaskAssets = [];
@@ -46,12 +48,90 @@
   function authHeaders(json = true) {
     const headers = {};
     if (json) headers["Content-Type"] = "application/json";
+    if (accessToken) headers["X-Access-Token"] = accessToken;
     if (adminToken) headers.Authorization = `Bearer ${adminToken}`;
     return headers;
   }
 
+  function unlockApp() {
+    document.body.classList.remove("locked");
+    document.getElementById("access-password")?.blur();
+  }
+
+  function showAccessError(message) {
+    const el = document.getElementById("access-gate-error");
+    if (!el) return;
+    el.textContent = message || "비밀번호가 올바르지 않습니다.";
+    el.classList.remove("hidden");
+  }
+
+  async function checkAccessSession() {
+    try {
+      const res = await fetch("/api/auth/access", {
+        headers: accessToken ? { "X-Access-Token": accessToken } : {}
+      });
+      const body = await res.json().catch(() => ({}));
+      return res.ok && body.access;
+    } catch {
+      return false;
+    }
+  }
+
+  async function submitAccessPassword(event) {
+    event.preventDefault();
+    const input = document.getElementById("access-password");
+    const password = String(input?.value || "").trim();
+    const btn = document.getElementById("access-gate-submit");
+    const prev = btn?.textContent;
+    if (!password) {
+      showAccessError("비밀번호를 입력하세요.");
+      return;
+    }
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "확인 중…";
+    }
+    try {
+      const body = await api("/api/auth/access", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password })
+      });
+      accessToken = body.token || "";
+      if (accessToken) sessionStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+      unlockApp();
+      updateAdminUi();
+      loadHubSummary();
+    } catch (err) {
+      showAccessError(err.message || "비밀번호가 올바르지 않습니다.");
+      if (input) {
+        input.value = "";
+        input.focus();
+      }
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = prev || "접속";
+      }
+    }
+  }
+
+  async function gateApp() {
+    document.getElementById("access-gate-form")?.addEventListener("submit", submitAccessPassword);
+    const allowed = await checkAccessSession();
+    if (allowed) {
+      unlockApp();
+      updateAdminUi();
+      loadHubSummary();
+      return;
+    }
+    document.getElementById("access-password")?.focus();
+  }
+
   async function api(path, options = {}) {
-    const res = await fetch(path, options);
+    const headers = { ...(options.headers || {}) };
+    if (accessToken && !headers["X-Access-Token"]) headers["X-Access-Token"] = accessToken;
+    const res = await fetch(path, { ...options, headers });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(body.error || `요청 실패 (${res.status})`);
     return body;
@@ -1629,7 +1709,7 @@
       try {
         const res = await fetch("/api/cases/analyze", {
           method: "POST",
-          headers: { Authorization: `Bearer ${adminToken}` },
+          headers: authHeaders(false),
           body: fd
         });
         const body = await res.json().catch(() => ({}));
@@ -1673,5 +1753,5 @@
   setupImport();
   setupLibraryForms();
   updateAdminUi();
-  loadHubSummary();
+  gateApp();
 })();
